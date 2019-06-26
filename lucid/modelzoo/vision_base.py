@@ -101,6 +101,7 @@ class Model(with_metaclass(ModelPropertiesMetaClass, object)):
   labels_path = None
   image_value_range = (-1, 1)
   image_shape = [None, None, 3]
+  image_rank = 3
   layers = []
 
   _labels = None
@@ -163,10 +164,11 @@ class Model(with_metaclass(ModelPropertiesMetaClass, object)):
     if t_input is None:
       t_input = tf.placeholder(tf.float32, self.image_shape)
     t_prep_input = t_input
-    if len(t_prep_input.shape) == 3:
+    if len(t_prep_input.shape) == self.image_rank:
       t_prep_input = tf.expand_dims(t_prep_input, 0)
     if forget_xy_shape:
-      t_prep_input = model_util.forget_xy(t_prep_input)
+      dims = [1,2] if self.image_rank == 3 else [1,2,3]
+      t_prep_input = model_util.forget_dims(t_prep_input, dims)
     if hasattr(self, "is_BGR") and self.is_BGR is True:
       t_prep_input = tf.reverse(t_prep_input, [-1])
     lo, hi = self.image_value_range
